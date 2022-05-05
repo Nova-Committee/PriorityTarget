@@ -1,0 +1,11 @@
+modLoader = "javafml"
+loaderVersion = "[39,)"
+license = "AGPL v3"
+[[mods]]
+modId = "prioritytarget"
+version = "1.0.0"
+displayName = "PriorityTarget"
+credits = ""
+authors = "Tapio"
+description = '''
+'''
