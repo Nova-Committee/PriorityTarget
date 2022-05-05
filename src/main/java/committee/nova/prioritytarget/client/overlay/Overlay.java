@@ -35,27 +35,26 @@ public class Overlay {
         if (level < 1) return;
         final int target = chestplate.getOrCreateTag().getInt("targeted_entities");
         if (target < 1) return;
-        if (event.getType() == RenderGameOverlayEvent.ElementType.ALL) {
-            final int h = event.getWindow().getGuiScaledHeight();
-            final int w = event.getWindow().getGuiScaledWidth();
-            startRender();
-            final ResourceLocation texture = new ResourceLocation("prioritytarget:textures/overlay/indicator.png");
-            final float baseW = w / 2F + 75;
-            final float baseH = h / 2F - 65;
-            if (level < 2 || !PriorityTarget.omitDetected.get()) {
-                Minecraft.getInstance().font.draw(event.getMatrixStack(), new TextComponent("!")
-                        , baseW - 12, baseH + 18, -39424);
-                Minecraft.getInstance().font.draw(event.getMatrixStack(), new TranslatableComponent("overlay.prioritytarget.detected")
-                        , baseW - 30, baseH + 28, -39424);
-            }
-            if (level >= 2) {
-                RenderSystem.setShaderTexture(0, texture);
-                GuiComponent.blit(event.getMatrixStack(), (int) (baseW - 10), (int) (baseH + 5), 0, 0, 16, 16, 16, 16);
-                Minecraft.getInstance().font.draw(event.getMatrixStack(), new TextComponent(String.valueOf(target))
-                        , baseW, baseH, -39424);
-            }
-            endRender();
+        if (event.getType() != RenderGameOverlayEvent.ElementType.ALL) return;
+        final int h = event.getWindow().getGuiScaledHeight();
+        final int w = event.getWindow().getGuiScaledWidth();
+        startRender();
+        final ResourceLocation texture = new ResourceLocation("prioritytarget:textures/overlay/indicator.png");
+        final float baseW = w / 2F + 75;
+        final float baseH = h / 2F - 65;
+        if (level < 2 || !PriorityTarget.omitDetected.get()) {
+            Minecraft.getInstance().font.draw(event.getMatrixStack(), new TextComponent("!")
+                    , baseW - 12, baseH + 18, -39424);
+            Minecraft.getInstance().font.draw(event.getMatrixStack(), new TranslatableComponent("overlay.prioritytarget.detected")
+                    , baseW - 30, baseH + 28, -39424);
         }
+        if (level >= 2) {
+            RenderSystem.setShaderTexture(0, texture);
+            GuiComponent.blit(event.getMatrixStack(), (int) (baseW - 10), (int) (baseH + 5), 0, 0, 16, 16, 16, 16);
+            Minecraft.getInstance().font.draw(event.getMatrixStack(), new TextComponent(String.valueOf(target))
+                    , baseW, baseH, -39424);
+        }
+        endRender();
     }
 
     private static void startRender() {

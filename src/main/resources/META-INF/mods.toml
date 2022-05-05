@@ -5,7 +5,7 @@ license = "AGPL v3"
 modId = "prioritytarget"
 version = "1.0.0"
 displayName = "PriorityTarget"
-credits = ""
+credits = "Idea from the World of Warships game"
 authors = "Tapio"
 description = '''
 '''

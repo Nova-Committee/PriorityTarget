@@ -35,7 +35,7 @@ public class PriorityTarget {
     static {
         final ForgeConfigSpec.Builder commonBuilder = new ForgeConfigSpec.Builder();
         commonBuilder.comment("PriorityTarget Common Configuration");
-        refreshInterval = commonBuilder.comment("The time of the refresh interval. After each interval, the enchanted chest armor will check the amount of mobs targeting at the player")
+        refreshInterval = commonBuilder.comment("The time of the refresh interval. After each interval, the enchanted chest armor will check the amount of mobs targeting the player")
                 .defineInRange("refreshInterval", 5, 1, 6000);
         areaWidth = commonBuilder.comment("The width of the area, in which the mobs targeting the player will be counted.", "Width = value * 2 + 1")
                 .defineInRange("areaWidth", 32, 5, 100);
