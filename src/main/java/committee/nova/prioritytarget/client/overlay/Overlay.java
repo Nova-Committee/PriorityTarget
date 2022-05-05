@@ -26,9 +26,7 @@ public class Overlay {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void indicatorRender(RenderGameOverlayEvent.Pre event) {
         final Player player = Minecraft.getInstance().player;
-        if (player == null) {
-            return;
-        }
+        if (player == null) return;
         final ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
         if (chestplate.isEmpty()) return;
         final int level = EnchantmentHelper.getItemEnchantmentLevel(EnchantmentInit.spiderSense.get(), chestplate);
