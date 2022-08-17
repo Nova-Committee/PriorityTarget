@@ -1,0 +1,14 @@
+{
+  "id": "prioritytarget",
+  "name": "PriorityTarget",
+  "authors": [
+    "Tapio"
+  ],
+  "listeners": [
+    "committee.nova.prioritytarget.PriorityTarget",
+    {
+      "class": "committee.nova.prioritytarget.client.Overlay",
+      "side": "client"
+    }
+  ]
+}
