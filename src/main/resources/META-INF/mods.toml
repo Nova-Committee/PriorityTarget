@@ -3,9 +3,9 @@ loaderVersion = "[39,)"
 license = "AGPL v3"
 [[mods]]
 modId = "prioritytarget"
-version = "1.0.0"
+version = "2.0.0"
 displayName = "PriorityTarget"
-credits = "Idea from the World of Warships game"
+credits = "Idea from the game World of Warships"
 authors = "Tapio"
 description = '''
 '''
