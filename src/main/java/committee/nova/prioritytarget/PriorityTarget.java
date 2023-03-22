@@ -1,12 +1,12 @@
 package committee.nova.prioritytarget;
 
 import committee.nova.prioritytarget.api.PriorityTargetPredicates;
-import committee.nova.prioritytarget.common.enchantment.init.EnchantmentInit;
-import net.minecraft.world.entity.EquipmentSlot;
+import committee.nova.prioritytarget.common.event.TargetExactNumberEvent;
+import committee.nova.prioritytarget.common.event.TargetSearchEvent;
+import committee.nova.prioritytarget.common.network.handler.PTPacketHandler;
+import committee.nova.prioritytarget.common.network.msg.TargetMessage;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -16,6 +16,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,7 +30,6 @@ public class PriorityTarget {
     public static final ForgeConfigSpec.IntValue refreshInterval;
     public static final ForgeConfigSpec.IntValue areaWidth;
     public static final ForgeConfigSpec.IntValue areaHeight;
-    public static final ForgeConfigSpec.BooleanValue treasure;
     public static final ForgeConfigSpec.BooleanValue omitDetected;
 
     static {
@@ -41,8 +41,6 @@ public class PriorityTarget {
                 .defineInRange("areaWidth", 32, 5, 100);
         areaHeight = commonBuilder.comment("The height of the area, in which the mobs targeting the player will be counted.", "Height = value * 2 + 1")
                 .defineInRange("areaHeight", 10, 3, 192);
-        treasure = commonBuilder.comment("If true, the priority target enchantment will be a treasure enchantment")
-                .define("isTreasure", false);
         COMMON_CONFIG = commonBuilder.build();
         final ForgeConfigSpec.Builder clientBuilder = new ForgeConfigSpec.Builder();
         clientBuilder.comment("PriorityTarget Client Configuration");
@@ -55,26 +53,29 @@ public class PriorityTarget {
     public PriorityTarget() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, COMMON_CONFIG);
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CLIENT_CONFIG);
-        EnchantmentInit.init();
         PriorityTargetPredicates.init();
-        MinecraftForge.EVENT_BUS.addListener(this::onArmorTick);
+        MinecraftForge.EVENT_BUS.addListener(this::onPlayerTick);
         MinecraftForge.EVENT_BUS.register(this);
     }
 
     @SubscribeEvent
-    public void onArmorTick(TickEvent.PlayerTickEvent event) {
-        if (event.side.isClient()) return;
-        final Player player = event.player;
+    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (!(event.player instanceof ServerPlayer player)) return;
         final Level world = player.level;
         if (world.getGameTime() % refreshInterval.get() != 0) return;
         if (event.phase != TickEvent.Phase.END) return;
-        final ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
-        if (EnchantmentHelper.getItemEnchantmentLevel(EnchantmentInit.spiderSense.get(), chestplate) < 1) return;
-        final int rawWidth = areaWidth.get();
-        final int rawHeight = areaHeight.get();
-        final int target = world.getEntitiesOfClass(Mob.class,
-                new AABB(player.position().add(rawWidth, rawHeight, rawWidth), player.position().add(-rawWidth, -rawHeight, -rawWidth)),
+        final TargetSearchEvent search = new TargetSearchEvent(player, areaWidth.get(), areaHeight.get());
+        final boolean intercepted = MinecraftForge.EVENT_BUS.post(search);
+        final int w = search.getWidth();
+        final int h = search.getHeight();
+        int num = world.getEntitiesOfClass(Mob.class,
+                new AABB(player.position().add(w, h, w), player.position().add(-w, -h, -w)),
                 e -> (PriorityTargetPredicates.isTargeting(e, player))).size();
-        chestplate.getOrCreateTag().putInt("targeted_entities", target);
+        if (num > 0) {
+            final TargetExactNumberEvent number = new TargetExactNumberEvent(player, num);
+            num = MinecraftForge.EVENT_BUS.post(number) ? -1 : number.getNumber();
+        }
+        final int target = intercepted ? 0 : num;
+        PTPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new TargetMessage(target));
     }
 }
