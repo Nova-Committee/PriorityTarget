@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "prioritytarget",
+  "version": "${version}",
+  "name": "prioritytarget",
+  "description": "",
+  "authors": [
+    "Tapio"
+  ],
+  "contact": {
+    "repo": "https://github.com/Nova-Committee/PriorityTarget"
+  },
+  "license": "Nova-Relay-License-1.0",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "committee.nova.prioritytarget.client.PriorityTargetClient"
+    ],
+    "main": [
+      "committee.nova.prioritytarget.PriorityTarget"
+    ]
+  },
+  "mixins": [
+    "prioritytarget.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "*",
+    "fabric": "*",
+    "minecraft": "*",
+    "forgeconfigapiport": "*"
+  }
+}
