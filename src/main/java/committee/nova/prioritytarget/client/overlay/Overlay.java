@@ -1,0 +1,67 @@
+package committee.nova.prioritytarget.client.overlay;
+
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import committee.nova.prioritytarget.PriorityTarget;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+
+
+@Mod.EventBusSubscriber(value = Dist.CLIENT)
+public class Overlay {
+    @SubscribeEvent(priority = EventPriority.NORMAL)
+    public static void indicatorRender(RenderGuiOverlayEvent.Pre event) {
+        final Player player = Minecraft.getInstance().player;
+        if (player == null) return;
+        final int target = player.getPersistentData().getInt("targets_pt");
+        if (target == 0) return;
+        if (event.getOverlay() != VanillaGuiOverlay.CROSSHAIR.type()) return;
+        final int h = event.getWindow().getGuiScaledHeight();
+        final int w = event.getWindow().getGuiScaledWidth();
+        startRender();
+        final ResourceLocation texture = new ResourceLocation("prioritytarget:textures/overlay/indicator.png");
+        final float baseW = w / 2F + 75;
+        final float baseH = h / 2F - 65;
+        if (target == -1 || !PriorityTarget.omitDetected.get()) {
+            Minecraft.getInstance().font.draw(event.getPoseStack(), Component.literal("!")
+                    , baseW - 12, baseH + 18, -39424);
+            Minecraft.getInstance().font.draw(event.getPoseStack(), Component.translatable("overlay.prioritytarget.detected")
+                    , baseW - 30, baseH + 28, -39424);
+        }
+        if (target != -1) {
+            RenderSystem.setShaderTexture(0, texture);
+            GuiComponent.blit(event.getPoseStack(), (int) (baseW - 10), (int) (baseH + 5), 0, 0, 16, 16, 16, 16);
+            Minecraft.getInstance().font.draw(event.getPoseStack(), Component.literal(String.valueOf(target))
+                    , baseW, baseH, -39424);
+        }
+        endRender();
+    }
+
+    private static void startRender() {
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.enableBlend();
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
+    }
+
+    private static void endRender() {
+        RenderSystem.depthMask(true);
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.enableDepthTest();
+        RenderSystem.disableBlend();
+        RenderSystem.setShaderColor(1, 1, 1, 1);
+    }
+}
